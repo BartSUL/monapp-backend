@@ -45,4 +45,20 @@ class IndexController extends AbstractController
             'name' => $postData['name'],
         ]);
     }
+
+    #[Route('/people/{name}', name: 'app_remove_people', methods: ['DELETE'])]
+    public function removePeople(string $name, Request $request, ManagerRegistry $doctrine): Response
+    {
+        $repository = $doctrine->getRepository(People::class);
+        $vip = $repository->findOneBy([ 'name' => $name ]);
+
+        $em = $doctrine->getManager();
+        $em->remove($vip);
+        $em->flush();
+
+        return new JsonResponse([
+            'message' => 'Welcome to app_remove_people!',
+            'name' => $name,
+        ]);
+    }
 }
