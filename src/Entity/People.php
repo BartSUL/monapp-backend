@@ -16,7 +16,11 @@ class People
 
     #[Assert\Regex(
         pattern: '/^[\pLu][\pLl]*(([\'-]|(\.\s))?[\pLu][\pLl]+)+$/',
-        message: "Erreur de validation du nom."
+        message: "Erreur de format du nom."
+    )]
+    #[Assert\Length(
+        max: 50,
+        maxMessage: "Erreur de longueur du nom."
     )]
     #[ORM\Column(type: 'string', length: 255)]
     private $name;

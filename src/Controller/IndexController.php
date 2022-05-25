@@ -44,8 +44,6 @@ class IndexController extends AbstractController
             $payload = [];
             foreach($errors as $error) {
                 array_push($payload, $error->getMessage());
-                array_push($payload, $error->getMessage());
-                array_push($payload, $error->getMessage());
             }
 
             return new JsonResponse([
