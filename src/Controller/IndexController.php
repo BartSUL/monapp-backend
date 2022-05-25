@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class IndexController extends AbstractController
 {
@@ -22,6 +23,7 @@ class IndexController extends AbstractController
         foreach($peoples as $people) {
             array_push($payload, $people->getName());
         }
+
         return new JsonResponse([
             'message' => 'Welcome to your new controller!',
             'peoples' => $payload,
@@ -29,12 +31,28 @@ class IndexController extends AbstractController
     }
 
     #[Route('/people/add', name: 'app_add_people', methods: ['POST'])]
-    public function addPeople(Request $request, ManagerRegistry $doctrine): Response
+    public function addPeople(Request $request, ManagerRegistry $doctrine, ValidatorInterface $validator): Response
     {
         $postData = $request->toArray();
 
         $vip = new People();
         $vip->setName($postData['name']);
+
+        $errors = $validator->validate($vip);
+        if (count($errors) > 0) {
+
+            $payload = [];
+            foreach($errors as $error) {
+                array_push($payload, $error->getMessage());
+                array_push($payload, $error->getMessage());
+                array_push($payload, $error->getMessage());
+            }
+
+            return new JsonResponse([
+                'message' => 'Validation Error',
+                'errors' => $payload,
+            ], 400);
+        }
 
         $em = $doctrine->getManager();
         $em->persist($vip);
@@ -50,10 +68,13 @@ class IndexController extends AbstractController
     public function removePeople(string $name, Request $request, ManagerRegistry $doctrine): Response
     {
         $repository = $doctrine->getRepository(People::class);
-        $vip = $repository->findOneBy([ 'name' => $name ]);
+        $decoded = base64_decode($name);
+        $vipToDelete = $repository->findBy([ 'name' => $decoded ]);
 
         $em = $doctrine->getManager();
-        $em->remove($vip);
+        foreach ($vipToDelete as $vip) {
+            $em->remove($vip);
+        }
         $em->flush();
 
         return new JsonResponse([
